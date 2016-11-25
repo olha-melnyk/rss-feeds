@@ -1,9 +1,13 @@
 package ws.bilka.abcnews;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -71,6 +75,15 @@ public class MainActivity extends AppCompatActivity {
 
         mRssAdapter = new RssAdapter(this, mRssItems);
         mListView.setAdapter(mRssAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                RssItem item = mRssItems.get(position);
+                Uri uri = Uri.parse(item.getLink());
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+            }
+        });
     }
 
     private RssItem readItemElem(XmlPullParser xpp) throws XmlPullParserException, IOException {
@@ -100,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
                             item.setThumbnail(thumbnail);
                         }
                     }
+                } else if (xpp.getName().equalsIgnoreCase("link")) {
+                    String link = xpp.nextText();
+                    item.setLink(link);
                 }
             }
 
@@ -120,5 +136,4 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
-
 }
