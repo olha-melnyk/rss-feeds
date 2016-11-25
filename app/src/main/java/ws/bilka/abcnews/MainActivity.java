@@ -1,12 +1,9 @@
 package ws.bilka.abcnews;
 
-import android.app.ListActivity;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.view.View;
-import android.widget.ArrayAdapter;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.ListView;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -20,10 +17,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends ListActivity {
+public class MainActivity extends AppCompatActivity {
 
-    List headlines;
-    List links;
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    RssAdapter mRssAdapter;
+    private List<RssItem> mRssItems;
+    ListView mListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +35,8 @@ public class MainActivity extends ListActivity {
             StrictMode.setThreadPolicy(policy);
         }
 
-        headlines = new ArrayList();
-        links = new ArrayList();
+        mListView = (ListView)findViewById(R.id.list);
+        mRssItems = new ArrayList<>();
 
         try {
             URL url = new URL("http://feeds.abcnews.com/abcnews/topstories");
@@ -47,25 +47,17 @@ public class MainActivity extends ListActivity {
 
             xpp.setInput(getInputStream(url), "UTF_8");
 
-            boolean insideItem = false;
-
             int eventType = xpp.getEventType();
             while (eventType != XmlPullParser.END_DOCUMENT) {
+
                 if (eventType == XmlPullParser.START_TAG) {
 
                     if (xpp.getName().equalsIgnoreCase("item")) {
-                        insideItem = true;
-                    } else if (xpp.getName().equalsIgnoreCase("title")) {
-                        if (insideItem)
-                            headlines.add(xpp.nextText());
-                    } else if (xpp.getName().equalsIgnoreCase("link")) {
-                        if (insideItem)
-                            links.add(xpp.nextText());
-                    }
-                } else if(eventType==XmlPullParser.END_TAG && xpp.getName().equalsIgnoreCase("item")){
-                    insideItem=false;
-                }
 
+                        RssItem item = readItemElem(xpp);
+                        mRssItems.add(item);
+                    }
+                }
                 eventType = xpp.next();
             }
 
@@ -77,9 +69,48 @@ public class MainActivity extends ListActivity {
             e.printStackTrace();
         }
 
-        ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, headlines);
-        setListAdapter(adapter);
+        mRssAdapter = new RssAdapter(this, mRssItems);
+        mListView.setAdapter(mRssAdapter);
+    }
 
+    private RssItem readItemElem(XmlPullParser xpp) throws XmlPullParserException, IOException {
+
+        Log.d(TAG, "whole item read start");
+
+        RssItem item = new RssItem();
+        while(xpp.next() != XmlPullParser.END_DOCUMENT) {
+
+            if(xpp.getEventType() == XmlPullParser.START_TAG) {
+
+                if (xpp.getName().equalsIgnoreCase("title")) {
+                    String title = xpp.nextText().trim();
+                    item.setTitle(title); // TODO trim spaces
+                    Log.d(TAG, "title = " + title);
+                } else if (xpp.getName().equalsIgnoreCase("media:thumbnail")) {
+
+                    int width = Integer.parseInt(xpp.getAttributeValue(null, "width"));
+                    int height = Integer.parseInt(xpp.getAttributeValue(null, "height"));
+                    String url = xpp.getAttributeValue(null,"url");
+                    RssItemThumbnail thumbnail = new RssItemThumbnail(url, width, height);
+
+                    if(item.getThumbnail() == null) {
+                        item.setThumbnail(thumbnail);
+                    } else {
+                        if(item.getThumbnail().getWidth() > thumbnail.getWidth()) {
+                            item.setThumbnail(thumbnail);
+                        }
+                    }
+                }
+            }
+
+            xpp.next();
+
+            if(xpp.getEventType() == XmlPullParser.END_TAG && xpp.getName().equalsIgnoreCase("item"))
+                break;
+        }
+        Log.d(TAG, "whole item read end");
+
+        return item;
     }
 
     public InputStream getInputStream(URL url) {
@@ -90,10 +121,4 @@ public class MainActivity extends ListActivity {
         }
     }
 
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
-        Uri uri = Uri.parse(String.valueOf(links.get(position)));
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        startActivity(intent);
-    }
 }
