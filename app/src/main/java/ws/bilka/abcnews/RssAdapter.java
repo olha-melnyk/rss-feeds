@@ -2,6 +2,7 @@ package ws.bilka.abcnews;
 
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -10,15 +11,15 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import it.sephiroth.android.library.picasso.NetworkPolicy;
 import it.sephiroth.android.library.picasso.Picasso;
+import ws.bilka.abcnews.model.NewsItem;
 
 public class RssAdapter extends BaseAdapter {
 
-    private final List<RssItem> items;
+    private final List<NewsItem> items;
     private final Context context;
 
-    public RssAdapter(Context context, List<RssItem> items) {
+    public RssAdapter(Context context, List<NewsItem> items) {
         this.items = items;
         this.context = context;
     }
@@ -48,6 +49,9 @@ public class RssAdapter extends BaseAdapter {
             holder.itemTitle = (TextView) convertView.findViewById(R.id.itemTitle);
             convertView.setTag(holder);
 
+            holder.itemDate = (TextView) convertView.findViewById(R.id.itemDate);
+            convertView.setTag(holder);
+
             holder.itemImage = (ImageView) convertView.findViewById(R.id.itemImage);
             convertView.setTag(holder);
 
@@ -55,14 +59,14 @@ public class RssAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
         holder.itemTitle.setText(items.get(position).getTitle());
-        String imageUrl = items.get(position).getThumbnail().getUrl();
+        holder.itemDate.setText(items.get(position).getDate());
 
+        String imageUrl = items.get(position).getThumbnail().getUrl();
 
         Picasso.with(convertView.getContext())
                 .load(imageUrl)
                 .placeholder(R.drawable.placeholder)
                 .error(R.drawable.placeholder)
-                .networkPolicy(NetworkPolicy.OFFLINE)
                 .into(holder.itemImage);
 
         return convertView;
@@ -70,6 +74,7 @@ public class RssAdapter extends BaseAdapter {
 
     static class ViewHolder {
         TextView itemTitle;
+        TextView itemDate;
         ImageView itemImage;
     }
 }

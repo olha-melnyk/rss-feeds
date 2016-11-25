@@ -1,12 +1,13 @@
-package ws.bilka.abcnews;
+package ws.bilka.abcnews.model;
 
 
-public class RssItem {
+public class NewsItem {
     private String title;
     private String link;
-    private RssItemThumbnail thumbnail;
+    private String date;
+    private NewsItemThumbnail thumbnail;
 
-    public RssItem() {
+    public NewsItem() {
     }
 
     public String getTitle() {
@@ -25,11 +26,19 @@ public class RssItem {
         this.link = link;
     }
 
-    public RssItemThumbnail getThumbnail() {
+    public NewsItemThumbnail getThumbnail() {
         return thumbnail;
     }
 
-    public void setThumbnail(RssItemThumbnail thumbnail) {
+    public void setThumbnail(NewsItemThumbnail thumbnail) {
         this.thumbnail = thumbnail;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 }

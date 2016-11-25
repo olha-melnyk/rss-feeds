@@ -1,11 +1,11 @@
-package ws.bilka.abcnews;
+package ws.bilka.abcnews.model;
 
-public class RssItemThumbnail {
+public class NewsItemThumbnail {
     private String url;
     private int width;
     private int height;
 
-    public RssItemThumbnail(String url, int width, int height) {
+    public NewsItemThumbnail(String url, int width, int height) {
         this.url = url;
         this.width = width;
         this.height = height;
